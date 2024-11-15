@@ -1,0 +1,122 @@
+.dashboard {
+    font-family: 'Arial', sans-serif;
+    padding: 20px;
+  }
+  
+  .header {
+    text-align: center;
+  }
+  
+  .date {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .welcome-message {
+    font-size: 22px;
+    margin-top: 10px;
+  }
+  
+  .calories-summary {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .circle-graph {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+  }
+  
+  .green-part, .gray-part {
+    position: absolute;
+    height: 100%;
+    border-radius: 50%;
+  }
+  
+  .green-part {
+    background-color: #4caf50;
+  }
+  
+  .gray-part {
+    background-color: #b0bec5;
+  }
+  
+  .calories-text {
+    margin-top: 10px;
+  }
+  
+  .macronutrients-panel {
+    margin-top: 30px;
+  }
+  
+  .macronutrient {
+    margin-bottom: 10px;
+  }
+  
+  .progress-bar {
+    width: 100%;
+    height: 10px;
+    background-color: #ddd;
+    border-radius: 5px;
+  }
+  
+  .progress {
+    height: 100%;
+    border-radius: 5px;
+  }
+  
+  .quick-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .add-food, .add-workout {
+    width: 48%;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .progress-summary {
+    margin-top: 30px;
+  }
+  
+  .weight-progress-bar {
+    width: 100%;
+    height: 10px;
+    background-color: #ddd;
+    border-radius: 5px;
+  }
+  
+  .activity-panel {
+    margin-top: 30px;
+  }
+  
+  .tip-of-the-day {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+  }
+  
+  .bottom-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+  }
+  
+  .nav-button {
+    padding: 10px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  
+  .nav-button.active {
+    background-color: #4caf50;
+    color: white;
+  }
+  
