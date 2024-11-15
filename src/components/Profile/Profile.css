@@ -1,0 +1,227 @@
+/* Globálny štýl */
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+}
+
+/* Profilová stránka */
+.profile {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Profilová hlavička */
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+/* Spoločný štýl pre badge */
+.membership-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  color: #333;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bolder;
+}
+
+/* Premium členstvo */
+.membership-badge.premium {
+  background-color: gold;
+}
+
+/* Basic členstvo */
+.membership-badge.basic {
+  background-color: lightgray;
+}
+
+.back-button {
+  background: none;
+  color: #007BFF;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  padding: 10px 20px;
+}
+
+.back-button:hover {
+  color: #0056b3;
+}
+
+.user-details {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.avatar {
+  font-size: 70px;
+  color: #ccc;
+}
+
+.user-info h2 {
+  font-size: 20px;
+  color: #333;
+  margin: 0;
+}
+
+.edit-button {
+  padding: 10px 18px;
+  font-size: 14px;
+  background-color: #007BFF;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.edit-button:hover {
+  background-color: #0056b3;
+}
+
+/* Sekcie profilu */
+.section-header {
+  display: flex; /* Aktivácia flexboxu */
+  align-items: center; /* Vertikálne zarovnanie obsahu */
+  justify-content: space-between; /* Priestor medzi textom a ikonami */
+}
+
+.profile-section {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.profile-section h3 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.profile-section label {
+  display: block;
+  margin: 10px 0 5px;
+
+  font-size: 16px;
+  color: #34495e;
+}
+
+.profile-section input,
+.profile-section select {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #ffffff;
+  font-size: 16px;
+  margin-bottom: 10px;
+  margin-top: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.profile-section input:focus,
+.profile-section select:focus {
+  border-color: #007BFF;
+  background-color: #fff;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  margin-bottom: 16px;
+}
+
+.save-button-container {
+  display: flex; /* Použite flexbox */
+  justify-content: flex-end; /* Zarovnanie obsahu doprava */
+  margin-top: 20px; /* Pridajte horný okraj pre odsadenie */
+}
+
+
+.save-button {
+  padding: 10px 18px;
+  margin-top: 16px;
+  background-color: #299c33;
+  font-size: 14px;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.save-button:hover {
+  background-color: #2b642f;
+}
+
+.profile-footer button {
+  text-align: center;
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #f44336;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.profile-footer button:hover {
+  background-color: #e53935;
+}
+
+.edit-icon {
+  color: rgb(168, 167, 167);
+}
+
+.edit-icon:hover {
+  color: #333;
+}
+
+.close-icon {
+  color: rgb(230, 58, 58);
+  font-size: 20px;
+}
+
+.close-icon:hover{
+  color: #af2321;
+}
+
+/* Responzivita */
+@media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .user-details {
+    flex-direction: column;
+    margin-bottom: 10px;
+  }
+
+  .button-container,
+  .save-button,
+  .profile-footer button {
+    width: 100%;
+  }
+}

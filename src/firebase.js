@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getFirestore } from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -16,11 +16,14 @@ const firebaseConfig = {
   measurementId: "G-0DX3G38582"
 };
 
-// Initialize Firebase
+// Inicializácia Firebase aplikácie
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
-const analytics = getAnalytics(app);
 
-// Export autentifikácie, aby ju bolo možné použiť v iných súboroch
-export {app, auth, googleProvider};
+// Inicializácia autentifikácie a Google providera
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
+
+// Inicializácia Firestore databázy
+export const db = getFirestore(app);
+
+export default app;

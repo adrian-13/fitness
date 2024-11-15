@@ -1,12 +1,14 @@
-import React from 'react';
-import { auth, googleProvider } from '../../firebase';
+import React, { useEffect, useState } from 'react';
+import { auth, googleProvider, db } from '../../firebase';
 import { signInWithPopup } from 'firebase/auth';
-import axios from 'axios';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './WelcomeScreen.css';
+import logo from "../../assets/logo.png"
 
 const WelcomeScreen = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
+  const [isUserExist, setIsUserExist] = useState(false); // Stav pre kontrolu existencie používateľa v databáze
 
   const handleGoogleSignIn = async () => {
     try {
@@ -14,46 +16,65 @@ const WelcomeScreen = ({ onLoginSuccess }) => {
       
       // 1. Prihlásenie cez Google
       const result = await signInWithPopup(auth, googleProvider);
-      console.log('Google sign in successful:', result.user);
-      
       const user = result.user;
+      console.log('Google sign in successful:', user);
 
-      // 2. Príprava údajov používateľa
-      const userData = {
-        name: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-      };
-      console.log('User data prepared:', userData);
+      // 2. Skontrolujeme, či používateľ už existuje v databáze
+      const docRef = doc(db, 'users', user.uid);
+      const docSnap = await getDoc(docRef);
 
-      try {
-        // 3. Poslanie údajov na server
-        const response = await axios.post('http://localhost:5000/api/user', userData);
-        console.log('Server response:', response.data);
-      } catch (serverError) {
-        console.error('Server error:', serverError);
-        // Pokračujeme aj keď server zlyhá
+      if (!docSnap.exists()) {
+        // Ak používateľ neexistuje, nastavíme meno z Google účtu
+        const userData = {
+          name: user.displayName || 'Neznámy používateľ',
+          email: user.email,
+          photoURL: user.photoURL,
+        };
+
+        // Uložíme používateľské údaje do Firestore
+        await setDoc(docRef, userData);
+        console.log('User data saved to Firestore:', userData);
+      } else {
+        // Ak používateľ už existuje, načítame jeho meno
+        const userData = docSnap.data();
+        console.log('User already exists, data fetched:', userData);
+        setIsUserExist(true); // Nastavíme, že používateľ existuje
       }
 
-      // 4. Nastavenie autentifikácie a presmerovanie
+      // 3. Nastavenie autentifikácie a presmerovanie
       console.log('Calling onLoginSuccess...');
       onLoginSuccess();
-      
       console.log('Navigating to dashboard...');
-      // Skúsime použiť timeout pre presmerovanie
       setTimeout(() => {
-        navigate('/dashboard', { replace: true });
+        navigate('/', { replace: true });
       }, 100);
-      
+
     } catch (error) {
       console.error('Error in handleGoogleSignIn:', error);
     }
   };
 
+  useEffect(() => {
+    // Ak je používateľ prihlásený, skontrolujeme, či existuje v databáze
+    const user = auth.currentUser;
+    if (user) {
+      const checkUserExists = async () => {
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setIsUserExist(true); // Používateľ už existuje
+        } else {
+          setIsUserExist(false); // Používateľ neexistuje
+        }
+      };
+      checkUserExists();
+    }
+  }, []);
+
   return (
     <div className="welcome-screen">
       <div className="top-section">
-        <img src="/logo.png" alt="Logo" className="logo" />
+        <img src= {logo} alt="Logo" className="logo" />
         <h1>Tvoja cesta k zdravšiemu životnému štýlu</h1>
         <h3>Sleduj stravu, cvič, dosahuj ciele</h3>
       </div>
@@ -61,10 +82,8 @@ const WelcomeScreen = ({ onLoginSuccess }) => {
       <div className="middle-section">
         <button 
           className="google-button" 
-          onClick={() => {
-            console.log('Google button clicked');
-            handleGoogleSignIn();
-          }}
+          onClick={handleGoogleSignIn}
+          disabled={isUserExist} // Ak používateľ už existuje, tlačidlo bude neaktívne
         >
           Pokračovať s Google
         </button>
