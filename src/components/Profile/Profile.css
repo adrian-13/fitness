@@ -206,6 +206,115 @@ body {
   color: #af2321;
 }
 
+/* Multiplikátor aktivity */
+.info-icon {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.tooltip {
+  visibility: hidden;
+  width: auto;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  text-align: left;
+  font-size: 12px;
+  padding: 10px;
+  border-radius: 5px;
+  position: fixed; /* Zabezpečí, že bude na pevnom mieste */
+  top: 50%; /* Vertikálne vycentrované */
+  left: 50%; /* Horizontálne vycentrované */
+  transform: translate(-50%, -50%); /* Posunie na presné stredovanie */
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.info-icon:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tooltip th, .tooltip td {
+  padding: 8px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.tooltip th {
+  background-color: #444;
+}
+
+.tooltip td {
+  background-color: #333;
+}
+
+.tooltip tr:hover {
+  background-color: #555;
+}
+
+
+.calorie-input-mode-selector {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.mode-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-option.selected {
+  border-color: #4CAF50;
+  background-color: #f0f8f0;
+}
+
+.radio-circle {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #888;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.radio-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #4CAF50;
+  border-radius: 50%;
+}
+
+.mode-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.mode-title {
+  font-weight: bold;
+}
+
+.mode-description {
+  font-size: 0.8em;
+  color: #666;
+}
+
+
 /* Responzivita */
 @media (max-width: 768px) {
   .profile-header {

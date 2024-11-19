@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { auth, db } from '../../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { FaUserCircle, FaUser, FaDumbbell, FaBullseye, FaPen, FaTimes } from 'react-icons/fa';
+import { FaUserCircle, FaUser, FaDumbbell, FaBullseye, FaPen, FaTimes, FaInfoCircle } from 'react-icons/fa';
 import { formatDate } from '../../utils';
 import './Profile.css';
 
@@ -19,11 +19,15 @@ const Profile = () => {
       gender: '',
     },
     fitnessData: {
+      mainGoal: '', // Move mainGoal here
       experience: '',
-      activityLevel: '',
+      activityLevel: null,
+    },
+    calorieInput: {
+      mode: 'automatic', // "automatic" alebo "manual"
+      manualValue: 2000,
     },
     goals: {
-      mainGoal: '',
       targetWeight: null,
       estimatedDate: '',
       calorieGoal: null,
@@ -32,8 +36,9 @@ const Profile = () => {
 
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingFitnessData, setIsEditingFitnessData] = useState(false);
+  const [isEditingCalorieInput, setIsEditingCalorieInput] = useState(false);
   const [isEditingGoals, setIsEditingGoals] = useState(false);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
 
   const fetchUserData = async () => {
     const user = auth.currentUser;
@@ -54,11 +59,15 @@ const Profile = () => {
             gender: userData.gender || 'Muž',
           },
           fitnessData: {
+            mainGoal: userData.fitnessData?.mainGoal || 'Naberanie svalov',
             experience: userData.fitnessData?.experience || 'Začiatočník',
             activityLevel: userData.fitnessData?.activityLevel || 'Sedavá',
           },
+          calorieInput: userData.calorieInput || {
+            mode: 'automatic',
+            manualValue: 2000,
+          },
           goals: {
-            mainGoal: userData.goals?.mainGoal || 'Naberanie svalov',
             targetWeight: userData.goals?.targetWeight || 80,
             estimatedDate: userData.goals?.estimatedDate || '2025-01-01',
             calorieGoal: userData.goals?.calorieGoal || 2500,
@@ -67,6 +76,7 @@ const Profile = () => {
       }
     }
   };
+
 
   useEffect(() => {
     fetchUserData();
@@ -123,6 +133,7 @@ const Profile = () => {
       if (user) {
         const docRef = doc(db, 'users', user.uid);
         await updateDoc(docRef, {
+          'fitnessData.mainGoal': editedData.fitnessData.mainGoal,
           'fitnessData.experience': editedData.fitnessData.experience,
           'fitnessData.activityLevel': editedData.fitnessData.activityLevel,
         });
@@ -134,13 +145,99 @@ const Profile = () => {
     }
   };
 
+  const handleCalorieModeChange = (mode) => {
+    setEditedData((prev) => ({
+      ...prev,
+      calorieInput: {
+        ...prev.calorieInput,
+        mode,
+      },
+    }));
+  };
+
+const calculateCalories = () => {
+  const { weight, height, age, gender } = editedData.personalInfo;
+  const { activityLevel, mainGoal, experience } = editedData.fitnessData;
+
+  if (!weight || !height || !age || !activityLevel || isNaN(weight) || isNaN(height) || isNaN(age)) {
+    return 0;
+  }
+  
+  // Calculate BMR (Basal Metabolic Rate)
+  const bmr =
+    gender === 'Muž'
+      ? 10 * weight + 6.25 * height - 5.7 * age + 5
+      : 10 * weight + 6.25 * height - 4.3 * age - 161;
+
+  const maintenanceCalories = Math.round(bmr * activityLevel);
+
+  let recommendedIntake = maintenanceCalories;
+  
+  switch (mainGoal) {
+    case 'Chudnutie':
+      recommendedIntake = Math.round(maintenanceCalories * 0.8);
+      break;
+    case 'Budovanie svalov':
+      switch (experience) {
+        case 'Začiatočník':
+          recommendedIntake = Math.round(maintenanceCalories * 1.25);
+          break;
+        case 'Mierne pokročilý':
+          recommendedIntake = Math.round(maintenanceCalories * 1.15);
+          break;
+        case 'Pokročilý':
+          recommendedIntake = Math.round(maintenanceCalories * 1.1);
+          break;
+        case 'Prestal som cvičiť':
+          recommendedIntake = Math.round(maintenanceCalories * 1.2);
+          break;
+      }
+      break;
+    case 'Udržiavanie hmotnosti':
+      recommendedIntake = maintenanceCalories;
+      break;
+  }
+
+  return recommendedIntake;
+};
+  
+  const handleSaveCalorieInput = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const docRef = doc(db, 'users', user.uid);
+        
+        const calorieGoal = editedData.calorieInput.mode === 'automatic'
+          ? calculateCalories() // Use calculated calories if automatic mode
+          : editedData.calorieInput.manualValue; // Use manual input if manual mode
+  
+        // Update Firestore with calorie mode and value
+        await updateDoc(docRef, {
+          calorieInput: editedData.calorieInput, // Save the mode (automatic or manual) and manualValue
+          'goals.calorieGoal': calorieGoal, // Save the calorie goal
+          // Save the "totalCaloricIntake" under the "Kalorický príjem spolu" section
+          'calorieInput': {
+            mode: editedData.calorieInput.mode,
+            value: calorieGoal,
+          },
+        });
+  
+        setIsEditingCalorieInput(false);
+      }
+    } catch (error) {
+      console.error('Error saving calorie input:', error);
+      alert('Error saving calorie input');
+    }
+  };
+  
+  
+  
   const handleSaveGoals = async () => {
     try {
       const user = auth.currentUser;
       if (user) {
         const docRef = doc(db, 'users', user.uid);
         await updateDoc(docRef, {
-          'goals.mainGoal': editedData.goals.mainGoal,
           'goals.targetWeight': editedData.goals.targetWeight,
           'goals.estimatedDate': editedData.goals.estimatedDate,
           'goals.calorieGoal': editedData.goals.calorieGoal,
@@ -294,26 +391,63 @@ const Profile = () => {
         {isEditingFitnessData ? (
           <>
             <label>
+              Hlavný cieľ:
+              <select value={editedData.fitnessData.mainGoal} onChange={(e) => handleFitnessDataChange('mainGoal', e.target.value)}>
+                <option value="Budovanie svalov">Budovanie svalov</option>
+                <option value="Chudnutie">Chudnutie</option>
+                <option value="Udržiavanie hmotnosti">Udržiavanie hmotnosti</option>
+              </select>
+            </label>
+            <label>
               Skúsenosti:
               <select
                 value={editedData.fitnessData.experience}
                 onChange={(e) => handleFitnessDataChange('experience', e.target.value)}
               >
-                <option value="Začiatočník">Začiatočník</option>
-                <option value="Mierne pokročilý">Mierne pokročilý</option>
-                <option value="Pokročilý">Pokročilý</option>
+                <option value="Začiatočník">Začiatočník (0 - 2 roky)</option>
+                <option value="Mierne pokročilý">Mierne pokročilý (2 - 5 rokov)</option>
+                <option value="Pokročilý">Pokročilý (viac ako 5 rokov)</option>
+                <option value="Prestal som cvičiť">Prestal som cvičiť</option>
               </select>
             </label>
             <label>
-              Úroveň aktivity:
-              <select
+              Koeficient aktivity:
+            <div className="info-icon">
+            <FaInfoCircle />
+            <span className="tooltip">
+                <table>
+                <thead>
+                    <tr>
+                    <th>Úroveň aktivity</th>
+                    <th>Multiplikátor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                    <td>Sedentárny (veľmi málo aktivity, sedavý spôsob života)</td>
+                    <td>1.2 - 1.5</td>
+                    </tr>
+                    <tr>
+                    <td>Ľahko aktívny (ľahká aktivita, napr. prechádzky alebo krátka aktivita každý deň)</td>
+                    <td>1.5 - 1.8</td>
+                    </tr>
+                    <tr>
+                    <td>Stredne aktívny (pravidelný pohyb, napr. každodenné aktivity plus cvičenie)</td>
+                    <td>1.8 - 2.0</td>
+                    </tr>
+                    <tr>
+                    <td>Veľmi aktívny (fyzická práca alebo intenzívne tréningy každý deň)</td>
+                    <td>2.0 - 2.2</td>
+                    </tr>
+                </tbody>
+                </table>
+            </span>
+            </div>
+            <input
+                type="number"
                 value={editedData.fitnessData.activityLevel}
                 onChange={(e) => handleFitnessDataChange('activityLevel', e.target.value)}
-              >
-                <option value="Sedavá">Sedavá</option>
-                <option value="Mierna">Mierna</option>
-                <option value="Aktívna">Aktívna</option>
-              </select>
+              />
             </label>
             <div className="save-button-container">
                 <button className="save-button" onClick={handleSaveFitnessData}>
@@ -323,9 +457,75 @@ const Profile = () => {
           </>
         ) : (
           <>
+            <p><span className="highlight">Hlavný cieľ:</span> {editedData.fitnessData.mainGoal}</p>
             <p><span className="highlight">Skúsenosti:</span> {editedData.fitnessData.experience}</p>
-            <p><span className="highlight">Úroveň aktivity:</span> {editedData.fitnessData.activityLevel}</p>
+            <p><span className="highlight">Koeficient aktivity:</span> {editedData.fitnessData.activityLevel}</p>
           </>
+        )}
+      </div>
+
+      <div className="profile-section">
+        <h3 className="section-header">
+          <div className='title-container'>
+          <FaBullseye className="section-icon" /> Kalorický príjem a makronutrienty
+          </div>
+          {isEditingCalorieInput ? (
+            <FaTimes className="close-icon" onClick={() => setIsEditingCalorieInput(false)} />
+          ) : (
+            <FaPen className="edit-icon" onClick={() => setIsEditingCalorieInput(true)} />
+          )}
+        </h3>
+        {isEditingCalorieInput ? (
+          <>
+            <label>
+              <input
+                type="radio"
+                value="automatic"
+                checked={editedData.calorieInput.mode === 'automatic'}
+                onChange={(e) => handleCalorieModeChange(e.target.value)}
+              />
+              Automatický výpočet (na základe údajov)
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="manual"
+                checked={editedData.calorieInput.mode === 'manual'}
+                onChange={(e) => handleCalorieModeChange(e.target.value)}
+              />
+              Manuálne zadanie
+            </label>
+            {editedData.calorieInput.mode === 'manual' && (
+              <label>
+                Kalorický príjem:
+                <input
+                  type="number"
+                  value={editedData.calorieInput.manualValue}
+                  onChange={(e) =>
+                    setEditedData((prev) => ({
+                      ...prev,
+                      calorieInput: {
+                        ...prev.calorieInput,
+                        manualValue: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </label>
+            )}
+            <div className="save-button-container">
+              <button className="save-button" onClick={handleSaveCalorieInput}>
+                Uložiť
+              </button>
+            </div>
+          </>
+        ) : (
+          <p>
+            <span className="highlight">Kalorický cieľ:</span>{' '}
+            {editedData.calorieInput.mode === 'automatic'
+              ? `${calculateCalories()} kcal (automaticky)`
+              : `${editedData.calorieInput.manualValue} kcal (manuálne)`}
+          </p>
         )}
       </div>
 
@@ -342,14 +542,6 @@ const Profile = () => {
         </h3>
         {isEditingGoals ? (
           <>
-            <label>
-              Hlavný cieľ:
-            <select value={editedData.goals.mainGoal} onChange={(e) => handleGoalsChange('mainGoal', e.target.value)}>
-                <option value="Budovanie svalov">Budovanie svalov</option>
-                <option value="Chudnutie">Chudnutie</option>
-                <option value="Udržiavanie hmotnosti">Udržiavanie hmotnosti</option>
-            </select>
-            </label>
             <label>
               Cieľová váha:
               <input
@@ -382,7 +574,6 @@ const Profile = () => {
           </>
         ) : (
           <>
-            <p><span className="highlight">Hlavný cieľ:</span> {editedData.goals.mainGoal}</p>
             <p><span className="highlight">Cieľová váha:</span> {editedData.goals.targetWeight} kg</p>
             <p><span className="highlight">Predpokladaný dátum:</span> {formatDate(editedData.goals.estimatedDate)}</p>
             <p><span className="highlight">Kalorický príjem:</span> {editedData.goals.calorieGoal} kcal</p>
