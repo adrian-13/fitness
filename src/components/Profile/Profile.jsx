@@ -2,81 +2,109 @@ import React, { useState, useEffect } from 'react';
 import { auth, db } from '../../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { FaUserCircle, FaUser, FaDumbbell, FaBullseye, FaPen, FaTimes, FaInfoCircle } from 'react-icons/fa';
+import { FaUserCircle, FaUser, FaRunning , FaBullseye, FaPen, FaTimes, FaInfoCircle, FaUtensils, FaAppleAlt,  } from 'react-icons/fa';
 import { formatDate } from '../../utils';
 import './Profile.css';
 
 const Profile = () => {
-  const [editedData, setEditedData] = useState({
+  const initialState = {
     userName: '',
     email: '',
     membership: 'Basic',
-    personalInfo: {
+    personalData: {
       name: '',
-      age: null,
-      height: null,
-      weight: null,
+      age: '',
+      height: '',
+      weight: '',
       gender: '',
+      email: '',
+      photoURL: '',
     },
     fitnessData: {
-      mainGoal: '', // Move mainGoal here
+      mainGoal: '',
       experience: '',
-      activityLevel: null,
+      activityLevel: '',
     },
     calorieInput: {
-      mode: 'automatic', // "automatic" alebo "manual"
-      manualValue: 2000,
+      mode: 'automatic',
+      value: 2000,
+    },
+    nutrition: {
+      mode: 'automatic',
+      proteins: '',
+      carbs: '',
+      fats: ''
     },
     goals: {
-      targetWeight: null,
+      targetWeight: '',
       estimatedDate: '',
-      calorieGoal: null,
+      calorieGoal: '',
     }
-  });
+  };
+
+  const [userData, setUserData] = useState(initialState);
+  const [editedData, setEditedData] = useState(initialState);
 
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
   const [isEditingFitnessData, setIsEditingFitnessData] = useState(false);
   const [isEditingCalorieInput, setIsEditingCalorieInput] = useState(false);
+  const [isEditingMacros, setIsEditingMacros] = useState(false);
   const [isEditingGoals, setIsEditingGoals] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+
   const navigate = useNavigate(); 
 
   const fetchUserData = async () => {
-    const user = auth.currentUser;
-    if (user) {
-      const docRef = doc(db, 'users', user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const userData = docSnap.data();
-        setEditedData({
-          userName: userData.name || '',
-          email: userData.email || '',
-          membership: userData.membership || 'Basic',
-          personalInfo: {
-            name: userData.name || '',
-            age: userData.age || 30,
-            height: userData.height || 180,
-            weight: userData.weight || 75,
-            gender: userData.gender || 'Muž',
-          },
-          fitnessData: {
-            mainGoal: userData.fitnessData?.mainGoal || 'Naberanie svalov',
-            experience: userData.fitnessData?.experience || 'Začiatočník',
-            activityLevel: userData.fitnessData?.activityLevel || 'Sedavá',
-          },
-          calorieInput: userData.calorieInput || {
-            mode: 'automatic',
-            manualValue: 2000,
-          },
-          goals: {
-            targetWeight: userData.goals?.targetWeight || 80,
-            estimatedDate: userData.goals?.estimatedDate || '2025-01-01',
-            calorieGoal: userData.goals?.calorieGoal || 2500,
-          }
-        });
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const formattedData = {
+            membership: data.membership || 'Basic',
+            personalData: {
+              name: data.personalData?.name || '',
+              age: data.personalData?.age || '',
+              height: data.personalData?.height || '',
+              weight: data.personalData?.weight || '',
+              gender: data.personalData?.gender || '',
+              email: data.personalData?.email || '',
+              photoURL: data.personalData?.photoURL || '',
+            },
+            fitnessData: {
+              mainGoal: data.fitnessData?.mainGoal || '',
+              experience: data.fitnessData?.experience || '',
+              activityLevel: data.fitnessData?.activityLevel || '',
+            },
+            calorieInput: {
+              mode: data.calorieInput?.mode || 'automatic',
+              value: data.calorieInput?.value || 2000,
+            },
+            nutrition: {
+              mode: data.nutrition?.mode || 'automatic',
+              proteins: data.nutrition?.proteins || 150 ,
+              carbs: data.nutrition?.carbs || 200 ,
+              fats: data.nutrition?.fats || 67 
+            },
+            goals: {
+              targetWeight: data.goals?.targetWeight || '',
+              estimatedDate: data.goals?.estimatedDate || '',
+              calorieGoal: data.goals?.calorieGoal || '',
+            }
+          };
+          setUserData(formattedData);
+          setEditedData(formattedData);
+        }
+        
       }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
     }
   };
-
 
   useEffect(() => {
     fetchUserData();
@@ -86,77 +114,82 @@ const Profile = () => {
     navigate('/');
   };
 
-  const handleEditPersonalInfo = () => {
-    setIsEditingPersonalInfo(!isEditingPersonalInfo);
-    if (isEditingPersonalInfo) {
-      fetchUserData();
+/* Edit data functions */
+  const handleEditFitnessData = () => {
+    if (isEditingFitnessData) {
+      setEditedData(prev => ({...prev, fitnessData: userData.fitnessData}));
     }
+    setIsEditingFitnessData(!isEditingFitnessData);
   };
 
-  const handleEditFitnessData = () => {
-    setIsEditingFitnessData(!isEditingFitnessData);
-    if (isEditingFitnessData) {
-      fetchUserData();
-    }
+  const handleEditCalorieInput = () => {
+    setEditedData(prev => ({
+      ...prev,
+      calorieInput: userData.calorieInput
+    }));
+    setIsEditingCalorieInput(!isEditingCalorieInput);
   };
 
   const handleEditGoals = () => {
+    setEditedData(prev => ({
+      ...prev,
+      goals: userData.goals
+    }));
     setIsEditingGoals(!isEditingGoals);
-    if (isEditingGoals) {
-      fetchUserData();
-    }
   };
 
-  const handleSavePersonalInfo = async () => {
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        const docRef = doc(db, 'users', user.uid);
-        await updateDoc(docRef, {
-          name: editedData.userName,
-          age: editedData.personalInfo.age,
-          height: editedData.personalInfo.height,
-          weight: editedData.personalInfo.weight,
-          gender: editedData.personalInfo.gender,
-        });
-        setIsEditingPersonalInfo(false);
-      }
-    } catch (error) {
-      console.error('Error saving personal info:', error);
-      alert('Error saving personal info changes');
-    }
-  };
-
-  const handleSaveFitnessData = async () => {
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        const docRef = doc(db, 'users', user.uid);
-        await updateDoc(docRef, {
-          'fitnessData.mainGoal': editedData.fitnessData.mainGoal,
-          'fitnessData.experience': editedData.fitnessData.experience,
-          'fitnessData.activityLevel': editedData.fitnessData.activityLevel,
-        });
-        setIsEditingFitnessData(false);
-      }
-    } catch (error) {
-      console.error('Error saving fitness data:', error);
-      alert('Error saving fitness data changes');
-    }
-  };
-
-  const handleCalorieModeChange = (mode) => {
+  const handleInputChange = (e) => {
+    const value = Number(e.target.value);
     setEditedData((prev) => ({
       ...prev,
       calorieInput: {
         ...prev.calorieInput,
-        mode,
+        value: value,
       },
     }));
+    if (value > 0) {
+      setErrorMessage('');
+    }
   };
 
+  /* Cancel handle functions */
+  const handleCancelPersonalInfo = () => {
+    setEditedData(prev => ({
+      ...prev,
+      personalInfo: {...userData.personalInfo},
+      userName: userData.userName
+    }));
+    setIsEditingPersonalInfo(false);
+  };
+
+  const handleCancelFitnessEdit = () => {
+    setEditedData(prev => ({
+      ...prev,
+      fitnessData: {...userData.fitnessData}
+    }));
+    setIsEditingFitnessData(false);
+  };
+
+  const handleCancelMacrosEdit = () => {
+    setEditedData(prev => ({
+      ...prev,
+      nutrition: {...userData.nutrition}
+    }));
+    setIsEditingMacros(false);
+  };
+
+  const handleCancelGoalsEdit = () => {
+    setEditedData(prev => ({
+      ...prev,
+      goals: {...userData.goals}
+    }));
+    setIsEditingGoals(false);
+  };
+
+
+ /* Calculations for Calories nad macros */ 
 const calculateCalories = () => {
-  const { weight, height, age, gender } = editedData.personalInfo;
+  const { weight, height, age, gender } = editedData.personalData;
   const { activityLevel, mainGoal, experience } = editedData.fitnessData;
 
   if (!weight || !height || !age || !activityLevel || isNaN(weight) || isNaN(height) || isNaN(age)) {
@@ -191,70 +224,255 @@ const calculateCalories = () => {
         case 'Prestal som cvičiť':
           recommendedIntake = Math.round(maintenanceCalories * 1.2);
           break;
+        default:
+          recommendedIntake = maintenanceCalories;
+          break;
       }
       break;
     case 'Udržiavanie hmotnosti':
+      recommendedIntake = maintenanceCalories;
+      break;
+    default:
       recommendedIntake = maintenanceCalories;
       break;
   }
 
   return recommendedIntake;
 };
+
+
+const calculateMacros = (totalCalories) => {
+  const { mainGoal } = editedData.fitnessData;
+  //const { weight } = editedData.personalInfo;
   
-  const handleSaveCalorieInput = async () => {
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        const docRef = doc(db, 'users', user.uid);
-        
-        const calorieGoal = editedData.calorieInput.mode === 'automatic'
-          ? calculateCalories() // Use calculated calories if automatic mode
-          : editedData.calorieInput.manualValue; // Use manual input if manual mode
+  let proteinPercentage, carbsPercentage, fatsPercentage;
   
-        // Update Firestore with calorie mode and value
-        await updateDoc(docRef, {
-          calorieInput: editedData.calorieInput, // Save the mode (automatic or manual) and manualValue
-          'goals.calorieGoal': calorieGoal, // Save the calorie goal
-          // Save the "totalCaloricIntake" under the "Kalorický príjem spolu" section
-          'calorieInput': {
-            mode: editedData.calorieInput.mode,
-            value: calorieGoal,
-          },
-        });
-  
-        setIsEditingCalorieInput(false);
-      }
-    } catch (error) {
-      console.error('Error saving calorie input:', error);
-      alert('Error saving calorie input');
+  switch (mainGoal) {
+    case 'Budovanie svalov':
+      proteinPercentage = 30;
+      carbsPercentage = 45;
+      fatsPercentage = 25;
+      break;
+    case 'Chudnutie':
+      proteinPercentage = 35;
+      carbsPercentage = 35;
+      fatsPercentage = 30;
+      break;
+    default: // Udržiavanie hmotnosti a ostatné
+      proteinPercentage = 30;
+      carbsPercentage = 40;
+      fatsPercentage = 30;
+  }
+
+  // Výpočet gramov na základe percent a celkových kalórií
+  const proteinCalories = totalCalories * (proteinPercentage / 100);
+  const carbsCalories = totalCalories * (carbsPercentage / 100);
+  const fatsCalories = totalCalories * (fatsPercentage / 100);
+
+  return {
+    proteins: {
+      grams: Math.round(proteinCalories / 4), // 4 kcal/g pre proteíny
+      percentage: proteinPercentage
+    },
+    carbs: {
+      grams: Math.round(carbsCalories / 4), // 4 kcal/g pre sacharidy
+      percentage: carbsPercentage
+    },
+    fats: {
+      grams: Math.round(fatsCalories / 9), // 9 kcal/g pre tuky
+      percentage: fatsPercentage
     }
   };
-  
-  
-  
-  const handleSaveGoals = async () => {
-    try {
+};
+
+
+/* Save functions */
+const handleSavePersonalInfo = async () => {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      const docRef = doc(db, 'users', user.uid);
+      
+      // Pridajte kontrolu existencie dát pred uložením
+      await updateDoc(docRef, {
+        'personalData.name': editedData.personalData.name,
+        'personalData.age': editedData.personalData.age,
+        'personalData.height': editedData.personalData.height,
+        'personalData.weight': editedData.personalData.weight,
+        'personalData.gender': editedData.personalData.gender, // Skontrolujte, či je tento riadok správne
+        'personalData.email': editedData.personalData.email,
+        'personalData.photoURL': editedData.personalData.photoURL,
+      }, { merge: true });  // Pridajte merge pre čiastočné updaty
+
+      setUserData(prev => ({
+        ...prev,
+        userName: editedData.personalData.name,
+        personalData: {...editedData.personalData}
+      }));
+      setIsEditingPersonalInfo(false);
+    }
+  } catch (error) {
+    console.error('Error saving personal info:', error);
+    alert('Error saving personal info changes');
+  }
+};
+
+const handleSaveFitnessData = async () => {
+  try {
       const user = auth.currentUser;
       if (user) {
-        const docRef = doc(db, 'users', user.uid);
-        await updateDoc(docRef, {
-          'goals.targetWeight': editedData.goals.targetWeight,
-          'goals.estimatedDate': editedData.goals.estimatedDate,
-          'goals.calorieGoal': editedData.goals.calorieGoal,
-        });
-        setIsEditingGoals(false);
+          const docRef = doc(db, 'users', user.uid);
+          await updateDoc(docRef, {
+              'fitnessData.mainGoal': editedData.fitnessData.mainGoal,
+              'fitnessData.experience': editedData.fitnessData.experience,
+              'fitnessData.activityLevel': editedData.fitnessData.activityLevel,
+          });
+          setUserData((prev) => ({
+              ...prev,
+              fitnessData: editedData.fitnessData,
+          }));
+          setIsEditingFitnessData(false);
       }
-    } catch (error) {
-      console.error('Error saving goals:', error);
-      alert('Error saving goals changes');
+  } catch (error) {
+      console.error('Error saving fitness data:', error);
+      alert('Error saving fitness data changes');
+  }
+};
+
+
+const handleSaveCalorieInput = async () => {
+  try {
+    const manualInputField = document.getElementById('manualInputField');
+    
+    if (
+      editedData.calorieInput.mode === 'manual' &&
+      (!editedData.calorieInput.value || editedData.calorieInput.value <= 0)
+    ) {
+      setErrorMessage('Prosím zadajte hodnotu kalorického príjmu väčšiu ako 0.');
+      if (manualInputField) {
+        manualInputField.style.borderColor = 'red';
+        manualInputField.style.borderWidth = '2px';
+      }
+      return;
+    } else {
+      if (manualInputField) {
+        manualInputField.style.borderColor = '';
+        manualInputField.style.borderWidth = '';
+      }
     }
-  };
+
+    const user = auth.currentUser;
+    if (user) {
+      const docRef = doc(db, 'users', user.uid);
+
+      const calorieValue = editedData.calorieInput.mode === 'automatic'
+        ? calculateCalories()
+        : editedData.calorieInput.value;
+
+      await updateDoc(docRef, {
+        calorieInput: {
+          mode: editedData.calorieInput.mode,
+          value: calorieValue,
+        },
+        'goals.calorieGoal': calorieValue,
+      });
+
+      setUserData((prev) => ({
+        ...prev,
+        calorieInput: {
+          mode: editedData.calorieInput.mode,
+          value: calorieValue,
+        },
+      }));
+      setErrorMessage('');
+      setIsEditingCalorieInput(false);
+    }
+  } catch (error) {
+    console.error('Error saving calorie input:', error);
+    setErrorMessage('Nastala chyba pri ukladaní údajov. Skúste to znova.');
+  }
+};
+
+
+const handleSaveMacros = async () => {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      const docRef = doc(db, 'users', user.uid);
+
+      const totalCalories =
+        editedData.calorieInput.mode === 'automatic'
+          ? calculateCalories()
+          : editedData.calorieInput.value;
+
+      let nutritionToSave;
+      if (editedData.nutrition.mode === 'automatic') {
+        const calculatedMacros = calculateMacros(totalCalories);
+        nutritionToSave = {
+          mode: 'automatic',
+          proteins: calculatedMacros.proteins.grams,
+          carbs: calculatedMacros.carbs.grams,
+          fats: calculatedMacros.fats.grams
+        };
+      } else {
+        nutritionToSave = {
+          mode: 'manual',
+          proteins: Number(editedData.nutrition.proteins),
+          carbs: Number(editedData.nutrition.carbs),
+          fats: Number(editedData.nutrition.fats)
+        };
+      }
+
+      await updateDoc(docRef, {
+        nutrition: nutritionToSave
+      });
+
+      setUserData((prev) => ({
+        ...prev,
+        nutrition: nutritionToSave
+      }));
+      
+      setErrorMessage('');
+      setIsEditingMacros(false);
+    }
+  } catch (error) {
+    console.error('Error saving macros:', error);
+    alert('Error saving macros');
+  }
+};
+
+const handleSaveGoals = async () => {
+  try {
+    const user = auth.currentUser;
+    if (user) {
+      const docRef = doc(db, 'users', user.uid);
+      await updateDoc(docRef, {
+        'goals.targetWeight': editedData.goals.targetWeight,
+        'goals.estimatedDate': editedData.goals.estimatedDate,
+        'goals.calorieGoal': editedData.goals.calorieGoal,
+      });
+
+      setUserData((prev) => ({
+        ...prev,
+        goals: editedData.goals,
+      }));
+
+      setIsEditingGoals(false);
+    }
+  } catch (error) {
+    console.error('Error saving goals:', error);
+    alert('Error saving goals changes');
+  }
+};
+  
+
+  /* Change functions */
 
   const handlePersonalInfoChange = (field, value) => {
     setEditedData(prev => ({
       ...prev,
-      personalInfo: {
-        ...prev.personalInfo,
+      personalData: {
+        ...prev.personalData,
         [field]: value
       }
     }));
@@ -270,6 +488,38 @@ const calculateCalories = () => {
     }));
   };
 
+  const handleCalorieModeChange = (mode) => {
+    const value = mode === 'automatic' ? calculateCalories() : editedData.calorieInput.value;
+    setEditedData((prev) => ({
+      ...prev,
+      calorieInput: {
+        mode,
+        value,
+      },
+    }));
+  };
+
+  const handleMacroModeChange = (mode) => {
+    setEditedData(prev => ({
+      ...prev,
+      nutrition: {
+        ...prev.nutrition,
+        mode
+      }
+    }));
+  };
+
+  const handleMacroChange = (macro, value) => {
+    setEditedData(prev => ({
+      ...prev,
+      nutrition: {
+        ...prev.nutrition,
+        [macro]: Number(value)
+      }
+    }));
+  };
+  
+
   const handleGoalsChange = (field, value) => {
     setEditedData(prev => ({
       ...prev,
@@ -279,111 +529,104 @@ const calculateCalories = () => {
       }
     }));
   };
+  
 
   return (
-    <div className="profile">
-      <div className="profile-header">
-        <div className="user-details">
-          <FaUserCircle className="avatar" />
-          <div className="user-info">
-            <h2>{editedData.userName}</h2>
+    <>
+      <div className="profile">
+        <div className="profile-header">
+          <div className="user-details">
+            <FaUserCircle className="avatar" />
+            <div className="user-info">
+              <h2>{editedData.personalData.name}</h2>
+            </div>
+          </div>
+          <div className="action-section">
+            <span className={`membership-badge ${editedData.membership.toLowerCase()}`}>
+              {editedData.membership}
+            </span>
           </div>
         </div>
-        <div className="action-section">
-          <span className={`membership-badge ${editedData.membership.toLowerCase()}`}>
-            {editedData.membership}
-          </span>
-        </div>
-      </div>
 
-      <div className="button-container">
-        <button className="back-button" onClick={handleBackButtonClick}>
-          ← Back to Dashboard
-        </button>
-      </div>
-
-      <div className="profile-section">
-      <h3 className="section-header">
+        <div className="profile-section">
+          <h3 className="section-header">
             <div className="title-container">
-                <FaUser className="section-icon" /> Osobné Informácie
+              <FaUser className="section-icon" /> Osobné Informácie
             </div>
             {isEditingPersonalInfo ? (
-                <FaTimes className="close-icon" onClick={handleEditPersonalInfo} />
+              <FaTimes className="close-icon" onClick={handleCancelPersonalInfo} />
             ) : (
-                <FaPen className="edit-icon" onClick={handleEditPersonalInfo} />
+              <FaPen className="edit-icon" onClick={() => setIsEditingPersonalInfo(true)} />
             )}
-        </h3>
-        {isEditingPersonalInfo ? (
-          <>
-            <label>
-              Meno:
-              <input
-                type="text"
-                value={editedData.userName}
-                onChange={(e) => setEditedData(prev => ({
-                  ...prev,
-                  userName: e.target.value
-                }))}
-              />
-            </label>
-            <label>
-              Vek:
-              <input
-                type="number"
-                value={editedData.personalInfo.age}
-                onChange={(e) => handlePersonalInfoChange('age', e.target.value)}
-              />
-            </label>
-            <label>
-              Výška:
-              <input
-                type="number"
-                value={editedData.personalInfo.height}
-                onChange={(e) => handlePersonalInfoChange('height', e.target.value)}
-              />
-            </label>
-            <label>
-              Váha:
-              <input
-                type="number"
-                value={editedData.personalInfo.weight}
-                onChange={(e) => handlePersonalInfoChange('weight', e.target.value)}
-              />
-            </label>
-            <label>
-              Pohlavie:
-              <select
-                value={editedData.personalInfo.gender}
-                onChange={(e) => handlePersonalInfoChange('gender', e.target.value)}
-              >
-                <option value="Muž">Muž</option>
-                <option value="Žena">Žena</option>
-              </select>
-            </label>
-            <div className="save-button-container">
+          </h3>
+          {isEditingPersonalInfo ? (
+            <>
+              <label>
+                Meno:
+                <input
+                  type="text"
+                  value={editedData.personalData.name}
+                  onChange={(e) => handlePersonalInfoChange('name', e.target.value)}
+                />
+              </label>
+              <label>
+                Vek:
+                <input
+                  type="number"
+                  value={editedData.personalData.age}
+                  onChange={(e) => handlePersonalInfoChange('age', e.target.value)}
+                />
+              </label>
+              <label>
+                Výška:
+                <input
+                  type="number"
+                  value={editedData.personalData.height}
+                  onChange={(e) => handlePersonalInfoChange('height', e.target.value)}
+                />
+              </label>
+              <label>
+                Váha:
+                <input
+                  type="number"
+                  value={editedData.personalData.weight}
+                  onChange={(e) => handlePersonalInfoChange('weight', e.target.value)}
+                />
+              </label>
+              <label>
+                Pohlavie:
+                <select
+                  value={editedData.personalData.gender}
+                  onChange={(e) => handlePersonalInfoChange('gender', e.target.value)}
+                >
+                  <option value="Muž">Muž</option>
+                  <option value="Žena">Žena</option>
+                </select>
+              </label>
+              <div className="save-button-container">
                 <button className="save-button" onClick={handleSavePersonalInfo}>
-                    Uložiť
+                  Uložiť
                 </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p><span className="highlight">Meno:</span> {editedData.userName}</p>
-            <p><span className="highlight">Vek:</span> {editedData.personalInfo.age}</p>
-            <p><span className="highlight">Výška:</span> {editedData.personalInfo.height} cm</p>
-            <p><span className="highlight">Váha:</span> {editedData.personalInfo.weight} kg</p>
-            <p><span className="highlight">Pohlavie:</span> {editedData.personalInfo.gender}</p>
-          </>
-        )}
-      </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <p><span className="highlight">Meno:</span> {editedData.personalData.name}</p>
+              <p><span className="highlight">Vek:</span> {editedData.personalData.age}</p>
+              <p><span className="highlight">Výška:</span> {editedData.personalData.height} cm</p>
+              <p><span className="highlight">Váha:</span> {editedData.personalData.weight} kg</p>
+              <p><span className="highlight">Pohlavie:</span> {editedData.personalData.gender}</p>
+            </>
+          )}
+        </div>
 
       <div className="profile-section">
       <h3 className="section-header">
             <div className="title-container">
-                <FaDumbbell className="section-icon" /> Fitness Údaje
+                <FaRunning style={{ color: "orange" }} className="section-icon" /> Fitness Údaje
             </div>
             {isEditingFitnessData ? (
-                <FaTimes className="close-icon" onClick={handleEditFitnessData} />
+                <FaTimes className="close-icon" onClick={handleCancelFitnessEdit} />
             ) : (
                 <FaPen className="edit-icon" onClick={handleEditFitnessData} />
             )}
@@ -465,18 +708,19 @@ const calculateCalories = () => {
       </div>
 
       <div className="profile-section">
-        <h3 className="section-header">
-          <div className='title-container'>
-          <FaBullseye className="section-icon" /> Kalorický príjem a makronutrienty
+      <h3 className="section-header">
+          <div className="title-container">
+            <FaUtensils style={{ color: "green" }} className="section-icon" /> Kalorický príjem
           </div>
           {isEditingCalorieInput ? (
-            <FaTimes className="close-icon" onClick={() => setIsEditingCalorieInput(false)} />
+            <FaTimes className="close-icon" onClick={() => handleEditCalorieInput()} />
           ) : (
             <FaPen className="edit-icon" onClick={() => setIsEditingCalorieInput(true)} />
           )}
         </h3>
         {isEditingCalorieInput ? (
-          <>
+        <>
+          <div className="calorie-mode-container">
             <label>
               <input
                 type="radio"
@@ -484,8 +728,9 @@ const calculateCalories = () => {
                 checked={editedData.calorieInput.mode === 'automatic'}
                 onChange={(e) => handleCalorieModeChange(e.target.value)}
               />
-              Automatický výpočet (na základe údajov)
+              <span>Automatický výpočet (na základe údajov)</span>
             </label>
+            
             <label>
               <input
                 type="radio"
@@ -493,51 +738,145 @@ const calculateCalories = () => {
                 checked={editedData.calorieInput.mode === 'manual'}
                 onChange={(e) => handleCalorieModeChange(e.target.value)}
               />
-              Manuálne zadanie
+              <span>Manuálne zadanie</span>
             </label>
+            
             {editedData.calorieInput.mode === 'manual' && (
+              <div className="calorie-manual-input">
+                <label>
+                  <span>Kalorický príjem:</span>
+                  <input
+                    id="manualInputField"
+                    type="number"
+                    value={editedData.calorieInput.value}
+                    onChange={handleInputChange}
+                    placeholder={errorMessage || 'Zadajte hodnotu'}
+                    className={errorMessage ? 'input-error' : ''}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+          <div className="save-button-container">
+            <button className="save-button" onClick={handleSaveCalorieInput}>
+              Uložiť
+            </button>
+          </div>
+        </>
+      ) : (
+        <p>
+          <span className="highlight">Kalorický cieľ:</span>{' '}
+          {editedData.calorieInput.value} kcal 
+          ({editedData.calorieInput.mode === 'automatic' ? 'automaticky' : 'manuálne'})
+        </p>
+      )}
+      </div>
+
+      <div className="profile-section">
+        <h3 className="section-header">
+          <div className="title-container">
+            <FaAppleAlt style={{ color: "lightblue" }} className="section-icon" /> Makronutrienty
+          </div>
+          {isEditingMacros ? (
+            <FaTimes className="close-icon" onClick={handleCancelMacrosEdit} />
+          ) : (
+            <FaPen className="edit-icon" onClick={() => setIsEditingMacros(true)} />
+          )}
+        </h3>
+        {isEditingMacros ? (
+          <>
+            <div className="calorie-mode-container">
               <label>
-                Kalorický príjem:
+                <input
+                  type="radio"
+                  value="automatic"
+                  checked={editedData.nutrition.mode === 'automatic'}
+                  onChange={(e) => handleMacroModeChange(e.target.value)}
+                />
+                Automatický výpočet
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="manual"
+                  checked={editedData.nutrition.mode === 'manual'}
+                  onChange={(e) => handleMacroModeChange(e.target.value)}
+                />
+                Manuálne zadanie
+              </label>
+            </div>
+            
+            {editedData.nutrition.mode === 'manual' && (
+            <div className="macro-inputs">
+              <label>
+                Proteíny (g):
                 <input
                   type="number"
-                  value={editedData.calorieInput.manualValue}
-                  onChange={(e) =>
-                    setEditedData((prev) => ({
-                      ...prev,
-                      calorieInput: {
-                        ...prev.calorieInput,
-                        manualValue: e.target.value,
-                      },
-                    }))
-                  }
+                  value={editedData.nutrition.proteins}
+                  onChange={(e) => handleMacroChange('proteins', e.target.value)}
                 />
               </label>
-            )}
+              <label>
+                Sacharidy (g):
+                <input
+                  type="number"
+                  value={editedData.nutrition.carbs}
+                  onChange={(e) => handleMacroChange('carbs', e.target.value)}
+                />
+              </label>
+              <label>
+                Tuky (g):
+                <input
+                  type="number"
+                  value={editedData.nutrition.fats}
+                  onChange={(e) => handleMacroChange('fats', e.target.value)}
+                />
+              </label>
+            </div>
+          )}
+            
             <div className="save-button-container">
-              <button className="save-button" onClick={handleSaveCalorieInput}>
+              <button className="save-button" onClick={handleSaveMacros}>
                 Uložiť
               </button>
             </div>
           </>
         ) : (
-          <p>
-            <span className="highlight">Kalorický cieľ:</span>{' '}
-            {editedData.calorieInput.mode === 'automatic'
-              ? `${calculateCalories()} kcal (automaticky)`
-              : `${editedData.calorieInput.manualValue} kcal (manuálne)`}
-          </p>
+          <div className="macro-display">
+          {editedData.nutrition.mode === 'automatic' ? (
+            (() => {
+              const totalCalories = editedData.calorieInput.mode === 'automatic' 
+                ? calculateCalories()
+                : editedData.calorieInput.value;
+              const macros = calculateMacros(totalCalories);
+              return (
+                <>
+                  <p><span className="highlight">Proteíny:</span> {macros.proteins.grams}g ({macros.proteins.percentage}%)</p>
+                  <p><span className="highlight">Sacharidy:</span> {macros.carbs.grams}g ({macros.carbs.percentage}%)</p>
+                  <p><span className="highlight">Tuky:</span> {macros.fats.grams}g ({macros.fats.percentage}%)</p>
+                </>
+              );
+            })()
+          ) : (
+            <>
+              <p><span className="highlight">Proteíny:</span> {editedData.nutrition.proteins}g</p>
+              <p><span className="highlight">Sacharidy:</span> {editedData.nutrition.carbs}g</p>
+              <p><span className="highlight">Tuky:</span> {editedData.nutrition.fats}g</p>
+            </>
+          )}
+          </div>
         )}
       </div>
 
       <div className="profile-section">
       <h3 className="section-header">
             <div className="title-container">
-                <FaBullseye className="section-icon" /> Ciele
+                <FaBullseye style={{ color: "gold" }} className="section-icon" /> Ciele
             </div>
             {isEditingGoals ? (
-                <FaTimes className="close-icon" onClick={handleEditGoals} />
+              <FaTimes className="close-icon" onClick={handleCancelGoalsEdit} />
             ) : (
-                <FaPen className="edit-icon" onClick={handleEditGoals} />
+              <FaPen className="edit-icon" onClick={handleEditGoals} />
             )}
         </h3>
         {isEditingGoals ? (
@@ -581,10 +920,19 @@ const calculateCalories = () => {
         )}
       </div>
 
-      <div className="profile-footer">
-        <button onClick={() => auth.signOut()}>Odhlásiť sa</button>
+      <div className="logout-container">
+        <button className="logout-button" onClick={() => auth.signOut()}>
+
+          Odhlásiť sa
+        </button>
       </div>
     </div>
+    <div className="button-container">
+        <button className="back-button" onClick={handleBackButtonClick}>
+          ← Back to Dashboard
+        </button>
+      </div>
+    </>
   );
 };
 

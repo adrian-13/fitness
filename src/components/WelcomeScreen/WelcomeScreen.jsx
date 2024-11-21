@@ -26,9 +26,12 @@ const WelcomeScreen = ({ onLoginSuccess }) => {
       if (!docSnap.exists()) {
         // Ak používateľ neexistuje, nastavíme meno z Google účtu
         const userData = {
-          name: user.displayName || 'Neznámy používateľ',
-          email: user.email,
-          photoURL: user.photoURL,
+          personalInfo: {
+            name: user.displayName || 'Neznámy používateľ',
+            email: user.email,
+            photoURL: user.photoURL,
+          }
+
         };
 
         // Uložíme používateľské údaje do Firestore
