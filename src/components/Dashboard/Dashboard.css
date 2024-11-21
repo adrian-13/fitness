@@ -51,13 +51,17 @@
 }
 
 .day-number-circle {
+  width: 40px;  /* Fixná šírka */
+  height: 40px; /* Fixná výška (rovnaká ako šírka pre zachovanie kruhu) */
   font-size: 1.2rem;
   font-weight: bold;
   background-color: #F0F0F0;
   color: #303030;
   border-radius: 50%;
-  padding: 10px;
   margin-top: 5px;
+  display: flex;          /* Flexbox pre centrovanie */
+  align-items: center;    /* Vertikálne centrovanie */
+  justify-content: center; /* Horizontálne centrovanie */
 }
 
 .current-date .day-number-circle {
@@ -343,6 +347,20 @@
   color: var(--text-light);
 }
 
+/* Clickable date */
+.clickable {
+  cursor: pointer;
+}
+
+.calendar-day:hover .day-number-circle {
+  background-color: #e0e0e0;
+}
+
+.day-number-circle.selected {
+  background-color: #3fcc7c;
+  color: white;
+}
+
 
 @media (max-width: 768px) {
   .dashboard {
@@ -375,6 +393,28 @@
 
   .calendar-day {
     margin: 5px 0;
+  }
+
+  .day-number-circle {
+    width: 32px;  /* Menšia veľkosť pre mobilné zariadenia */
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .current-date .day-number-circle {
+    background-color: #303030;
+    color: #F0F0F0;
+  }
+  
+  .day-number-circle:hover {
+    background-color: #3fcc7c;
+    color: #F0F0F0;
+    transition: all 0.3s ease;
+  }
+  
+  .day-number-circle.selected {
+    background-color: #3fcc7c;
+    color: white;
   }
 
   .calendar-day .day-number-circle {

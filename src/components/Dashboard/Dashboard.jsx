@@ -8,7 +8,7 @@ import NutritionLog from '../NutritionLog/NutritionLog';
 import { PieChart } from '@mui/x-charts/PieChart';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import { format, addDays, subDays } from 'date-fns';
+import { format, addDays, subDays, parseISO } from 'date-fns';
 
 const Dashboard = () => {
   const [userName, setUserName] = useState('');
@@ -28,7 +28,12 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const handleNutritionDataUpdate = (nutritionData) => {
-    setConsumed(nutritionData);
+    setConsumed({
+      calories: nutritionData.calories || 0,
+      protein: nutritionData.protein || 0,
+      carbs: nutritionData.carbs || 0,
+      fats: nutritionData.fats || 0,
+    });
   };
 
 
@@ -50,7 +55,7 @@ const Dashboard = () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const userData = docSnap.data();
-          setUserName(userData.name || 'N/A');
+          setUserName(userData.personalData.name || 'N/A');
           setCalorieValue(userData.calorieInput.value || 2000);
           setProteinValue(userData.nutrition.proteins || 0);
           setCarbsValue(userData.nutrition.carbs || 0);
@@ -63,7 +68,8 @@ const Dashboard = () => {
     fetchUserData();
   }, []);
 
-  // Vzorové dáta
+
+
   const dailyGoals = {
     calories: calorieValue,
     protein: proteinValue,
@@ -73,8 +79,11 @@ const Dashboard = () => {
 
   // Príprava dát pre grafy
   const caloriesData = [
-    { value: consumed.calories, label: 'Prijaté' },
-    { value: Math.max(0, dailyGoals.calories - consumed.calories), label: 'Zostáva' },
+    { value: consumed.calories || 0, label: 'Prijaté' },
+    { 
+      value: Math.max(0, (dailyGoals.calories || 0) - (consumed.calories || 0)), 
+      label: 'Zostáva' 
+    },
   ];
 
   const proteinData = [
@@ -135,7 +144,8 @@ const Dashboard = () => {
 
   // Funkcia pre získanie aktuálneho dátumu a okolitých dní
   const getDateRange = () => {
-    const currentDate = new Date();
+    const currentDate = parseISO(selectedDate) || new Date();
+    const today = new Date();
     const formattedCurrentDate = format(currentDate, 'd');
     const formattedPrevDates = Array.from({ length: 3 }).map((_, index) =>
       format(subDays(currentDate, 3 - index), 'd')
@@ -145,21 +155,61 @@ const Dashboard = () => {
     );
     const daysOfWeek = ['Ne', 'Po', 'Ut', 'St', 'Št', 'Pi', 'So'];
     const prevDays = Array.from({ length: 3 }).map((_, index) =>
-      daysOfWeek[(currentDate.getDay() - (3 - index)) % 7]
+      daysOfWeek[subDays(currentDate, 3 - index).getDay()]
     );
     const nextDays = Array.from({ length: 3 }).map((_, index) =>
-      daysOfWeek[(currentDate.getDay() + (index + 1)) % 7]
+      daysOfWeek[addDays(currentDate, index + 1).getDay()]
     );
+    const currentDay = daysOfWeek[currentDate.getDay()];
+
+    const prevFullDates = Array.from({ length: 3 }).map((_, index) =>
+      format(subDays(currentDate, 3 - index), 'yyyy-MM-dd')
+    );
+    const currentFullDate = format(currentDate, 'yyyy-MM-dd');
+    const nextFullDates = Array.from({ length: 3 }).map((_, index) =>
+      format(addDays(currentDate, index + 1), 'yyyy-MM-dd')
+    );
+
+    const todayFullDate = format(today, 'yyyy-MM-dd');
+
     return {
       currentDate: formattedCurrentDate,
+      currentDay,
       prevDates: prevDays,
       nextDates: nextDays,
-      formattedPrevDates: formattedPrevDates,
-      formattedNextDates: formattedNextDates,
+      formattedPrevDates,
+      formattedNextDates,
+      prevFullDates,
+      currentFullDate,
+      nextFullDates,
+      todayFullDate
     };
   };
 
-  const { currentDate, prevDates, nextDates, formattedPrevDates, formattedNextDates } = getDateRange();
+
+  const handleDateClick = (date) => {
+    setSelectedDate(date);
+    // Reset consumed values when changing date
+    setConsumed({
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fats: 0,
+    });
+  };
+
+  const { 
+    currentDate, 
+    currentDay,
+    prevDates, 
+    nextDates, 
+    formattedPrevDates, 
+    formattedNextDates,
+    prevFullDates,
+    currentFullDate,
+    nextFullDates,
+    todayFullDate 
+  } = getDateRange();
 
   // Navigácia na profil
   const handleProfileClick = () => {
@@ -186,19 +236,38 @@ const Dashboard = () => {
       <div className="calendar">
         <div className="date-range-wrapper">
           {prevDates.map((day, index) => (
-            <div key={index} className="calendar-day">
+            <div 
+              key={index} 
+              className="calendar-day clickable"
+              onClick={() => handleDateClick(prevFullDates[index])}
+            >
               <div className="day-name">{day}</div>
-              <div className="day-number-circle">{formattedPrevDates[index]}</div>
+              <div className={`day-number-circle ${prevFullDates[index] === selectedDate ? 'selected' : ''}`}>
+                {formattedPrevDates[index]}
+              </div>
             </div>
           ))}
-          <div className="calendar-day current-date">
-            <div className="day-name">Dnes</div>
-            <div className="day-number-circle">{currentDate}</div>
+          <div 
+            className="calendar-day current-date clickable"
+            onClick={() => handleDateClick(currentFullDate)}
+          >
+            <div className="day-name">
+              {currentFullDate === todayFullDate ? 'Dnes' : currentDay}
+            </div>
+            <div className={`day-number-circle ${currentFullDate === selectedDate ? 'selected' : ''}`}>
+              {currentDate}
+            </div>
           </div>
           {nextDates.map((day, index) => (
-            <div key={index} className="calendar-day">
+            <div 
+              key={index} 
+              className="calendar-day clickable"
+              onClick={() => handleDateClick(nextFullDates[index])}
+            >
               <div className="day-name">{day}</div>
-              <div className="day-number-circle">{formattedNextDates[index]}</div>
+              <div className={`day-number-circle ${nextFullDates[index] === selectedDate ? 'selected' : ''}`}>
+                {formattedNextDates[index]}
+              </div>
             </div>
           ))}
         </div>
