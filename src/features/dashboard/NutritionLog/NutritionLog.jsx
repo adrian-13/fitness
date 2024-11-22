@@ -1,5 +1,6 @@
+import './NutritionLog.css';
 import React, { useState, useEffect } from 'react';
-import { db, auth } from '../../firebase';
+import { db, auth } from '../../../services/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
 

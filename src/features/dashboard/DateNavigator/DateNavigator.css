@@ -1,0 +1,83 @@
+.date-navigator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 1rem;
+    margin: 1rem auto;
+    max-width: 400px;
+    background: #f4f4f4;
+    border-radius: 12px;
+  }
+  
+  .date-nav-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a5568;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .date-nav-button:hover {
+    background-color: #f7fafc;
+    color: #2d3748;
+    transform: scale(1.05);
+  }
+  
+  .date-nav-button:active {
+    transform: scale(0.95);
+  }
+  
+  .current-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 200px;
+  }
+  
+  .date-main {
+    padding: 6px;
+  }
+  
+  .date-number {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 0.25rem;
+  }
+  
+  .today-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 0.35rem;
+  }
+  
+  .date-month-year {
+    font-size: 0.9rem;
+    color: #718096;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .clickable {
+    cursor: pointer;
+  }
+  
+  .calendar-day:hover .day-number-circle {
+    background-color: #e0e0e0;
+  }
+  
+  .day-number-circle.selected {
+    background-color: #3fcc7c;
+    color: white;
+  }

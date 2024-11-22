@@ -1,0 +1,10 @@
+.welcome-message {
+    font-size: 1.2rem;
+  }
+  
+  @media (max-width: 768px) {
+    .welcome-message {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+  }

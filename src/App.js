@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { auth } from './firebase'; // Import Firebase authentication
+import { auth } from './services/firebase'; // Import Firebase authentication
 import { onAuthStateChanged } from 'firebase/auth';
-import WelcomeScreen from './components/WelcomeScreen/WelcomeScreen'; // Tvoje komponenty
-import Dashboard from './components/Dashboard/Dashboard';
-import Profile from './components/Profile/Profile';
+import WelcomeScreen from '../src/features/welcomeScreen/WelcomeScreen'; // Tvoje komponenty
+import Dashboard from '../src/features/dashboard/Dashboard';
+import Profile from '../src/features/profile/Profile';
 
 const App = () => {
   const [user, setUser] = useState(null); // Stav prihláseného používateľa

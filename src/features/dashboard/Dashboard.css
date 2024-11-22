@@ -1,0 +1,13 @@
+.dashboard {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f4f4f4;
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 10px;
+    min-height: 100vh;
+    padding-bottom: 70px;
+  }
+}

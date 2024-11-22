@@ -1,0 +1,143 @@
+.chart-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 10px;
+  }
+  
+  .pie-chart {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+  }
+  
+  .chart-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  
+  .chart-center span {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+  
+  .chart-center small {
+    font-size: 0.8rem;
+    color: #666;
+  }
+  
+  .calories-main-chart {
+    background-color: var(--background-light);
+    border-radius: 16px;
+    padding: 20px 20px 20px 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+  }
+  
+  .calories-main-chart:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .calories-main-chart .nutrient-chart-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .calories-main-chart .nutrient-chart-wrapper {
+    width: 100%;
+    height: 250px;
+  }
+  
+  .calories-main-chart .nutrient-chart-label {
+    text-align: center;
+    margin-top: 0px;
+  }
+  
+  .calories-main-chart .nutrient-chart-label p:first-child {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  
+  .calories-main-chart .nutrient-chart-label p:last-child {
+    font-size: 1rem;
+    color: var(--text-light);
+  }
+  
+  .chart-wrapper {
+    margin-top: 20px;
+    background-color: var(--background-light);
+    border-radius: 16px;
+    padding: 40px 20px 40px 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+  }
+  
+  .nutrient-chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .nutrient-chart-wrapper {
+    width: 100%;
+    max-width: 200px;
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .nutrient-chart-label {
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  .nutrient-chart-label p:first-child {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  
+  .nutrient-chart-label p:last-child {
+    font-size: 1rem;
+    color: var(--text-light);
+  }
+  
+  @media (max-width: 768px) {
+    .calories-main-chart {
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+  
+    .chart-wrapper {
+      padding: 40px 20px 30px 20px;
+      margin-top: 0;
+    }
+  
+    .chart-wrapper > div {
+      display: flex;              
+      justify-content: space-between; 
+      gap: 10px; 
+    }
+  
+    .nutrient-chart-container {
+      width: 100%; 
+      max-width: 120px; 
+    }
+  
+    .nutrient-chart-wrapper {
+      width: 100%;
+      height: 120px;
+    }
+  }

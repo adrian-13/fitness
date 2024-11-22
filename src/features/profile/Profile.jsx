@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { auth, db } from '../../firebase';
+import { auth, db } from '../../services/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { FaUserCircle, FaUser, FaRunning , FaBullseye, FaPen, FaTimes, FaInfoCircle, FaUtensils, FaAppleAlt,  } from 'react-icons/fa';
-import { formatDate } from '../../utils';
+import { formatDate } from '../../utils/utils';
 import './Profile.css';
 
 const Profile = () => {
